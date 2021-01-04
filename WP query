@@ -1,0 +1,76 @@
+<?php
+$default_posts_per_page = get_option('posts_per_page');
+$wpb_all_query = new WP_Query(array('post_type' => 'post', 'post_status' => 'publish', 'posts_per_page' => $default_posts_per_page)); ?>
+
+<div class="category_wrap">
+    <?php
+    $args = array(
+        'show_option_all' => '',
+        'show_option_none' => __('No categories'),
+        'show_count' => 0,
+        'hide_empty' => 1,
+        'use_desc_for_title' => 0,
+        'child_of' => 0,
+        'feed' => '',
+        'feed_type' => '',
+        'feed_image' => '',
+        'exclude' => '',
+        'exclude_tree' => '',
+        'include' => '',
+        'hierarchical' => false,
+        'number' => NULL,
+        'echo' => 1,
+        'depth' => 0,
+        'current_category' => 0,
+        'pad_counts' => 0,
+        'taxonomy' => 'category',
+        'walker' => 'Walker_Category',
+        'hide_title_if_empty' => false,
+        'separator' => '',
+        'title_li' => ''
+    );
+    wp_list_categories($args);
+
+    ?>
+</div>
+
+<?php
+
+
+//Protect against arbitrary paged values
+$paged = (get_query_var('paged')) ? absint(get_query_var('paged')) : 1;
+
+$args = array(
+    'posts_per_page' => 9,
+    'paged' => $paged,
+);
+
+$the_query = new WP_Query($args);
+if ($the_query->have_posts()) : ?>
+    <ul class="blog_list">
+        <!-- the loop -->
+        <?php while ($the_query->have_posts()) : $the_query->the_post(); ?>
+
+            <?php get_template_part('templates/post_item'); ?>
+
+        <?php endwhile; ?>
+        <!-- end of the loop -->
+
+    </ul>
+
+    <?php wp_reset_postdata(); ?>
+
+
+<?php endif; ?>
+
+
+<?php
+$big = 999999999; // need an unlikely integer
+
+echo paginate_links(array(
+    'base' => str_replace($big, '%#%', esc_url(get_pagenum_link($big))),
+    'format' => '?paged=%#%',
+    'current' => max(1, get_query_var('paged')),
+    'total' => $the_query->max_num_pages
+));
+?>
